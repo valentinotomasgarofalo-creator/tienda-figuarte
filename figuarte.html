@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiguArte22 | Catálogo</title>
+    <style>
+        :root {
+            --primary: #833ab4;
+            --bg: #fdfdfd;
+            --text: #262626;
+            --btn-blue: #0095f6;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        
+        header { 
+            background: white; 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 1px solid #dbdbdb;
+        }
+
+        .container { 
+            max-width: 900px; 
+            margin: 20px auto; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            padding: 0 15px;
+        }
+
+        /* PRODUCTOS SIN IMAGEN */
+        .productos-grid { 
+            flex: 2; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 15px; 
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 10px; 
+            padding: 20px; 
+            text-align: center; 
+            border: 1px solid #dbdbdb;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card h3 { font-size: 1rem; margin-bottom: 10px; color: #444; }
+        .card .precio { font-size: 1.3rem; font-weight: bold; color: var(--text); margin-bottom: 15px; }
+        
+        .btn-add { 
+            background: var(--btn-blue); 
+            color: white; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600;
+        }
+
+        /* CARRITO */
+        .carrito-sidebar { 
+            flex: 1; 
+            min-width: 280px; 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 10px; 
+            border: 1px solid #dbdbdb;
+            height: fit-content; 
+            position: sticky; 
+            top: 20px;
+        }
+
+        .item-carrito { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #efefef; 
+            font-size: 0.9rem;
+        }
+
+        .total-box { 
+            margin-top: 20px; 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            text-align: right; 
+        }
+
+        .btn-instagram { 
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 8px; 
+            width: 100%; 
+            font-size: 1rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .btn-remove { background: none; color: #ed4956; border: none; cursor: pointer; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .carrito-sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="font-style: italic; letter-spacing: 1px;">FiguArte22</h1>
+    <p>Seleccioná tus productos y pedilos por MD</p>
+</header>
+
+<div class="container">
+    <div class="productos-grid" id="lista-prod"></div>
+
+    <div class="carrito-sidebar">
+        <h3 style="margin-top:0">🛍️ Lista de Pedido</h3>
+        <div id="lista-carrito">
+            <p style="color: #999;">No hay productos seleccionados.</p>
+        </div>
+        <div class="total-box">Total: $<span id="monto-total">0</span></div>
+        
+        <button class="btn-instagram" onclick="pedirPorInstagram()">
+            PEDIR POR INSTAGRAM
+        </button>
+    </div>
+</div>
+
+<script>
+    // LISTA DE PRODUCTOS SIN IMAGEN
+    const productos = [
+        { id: 1, nombre: "Pulsera", precio: 2000 },
+        { id: 2, nombre: "Collar", precio: 4500 },
+        { id: 3, nombre: "Collar con Oso", precio: 2000 },
+        { id: 4, nombre: "Collar Pañuelo", precio: 6000 },
+        { id: 5, nombre: "Llavero Ojo Turco", precio: 5000 },
+        { id: 6, nombre: "Pulsera de Pañuelo", precio: 4500 },
+        { id: 7, nombre: "Figurita", precio: 1300 },
+        { id: 8, nombre: "Llavero", precio: 2500 },
+        { id: 9, nombre: "Muñeco 3D", precio: 5000 },
+        { id: 10, nombre: "Llaveros para llaves", precio: 2000 }
+    ];
+
+    let carrito = [];
+
+    function mostrarProductos() {
+        const div = document.getElementById('lista-prod');
+        div.innerHTML = productos.map(p => `
+            <div class="card">
+                <h3>${p.nombre}</h3>
+                <p class="precio">$${p.precio}</p>
+                <button class="btn-add" onclick="sumarAlCarrito(${p.id})">Añadir</button>
+            </div>
+        `).join('');
+    }
+
+    function sumarAlCarrito(id) {
+        const prod = productos.find(p => p.id === id);
+        carrito.push(prod);
+        renderCarrito();
+    }
+
+    function quitarDelCarrito(index) {
+        carrito.splice(index, 1);
+        renderCarrito();
+    }
+
+    function renderCarrito() {
+        const lista = document.getElementById('lista-carrito');
+        const totalTxt = document.getElementById('monto-total');
+        
+        if (carrito.length === 0) {
+            lista.innerHTML = '<p style="color: #999;">El carrito está vacío.</p>';
+            totalTxt.innerText = "0";
+            return;
+        }
+
+        lista.innerHTML = carrito.map((item, i) => `
+            <div class="item-carrito">
+                <span>${item.nombre}</span>
+                <span>$${item.precio} <button class="btn-remove" onclick="quitarDelCarrito(${i})">x</button></span>
+            </div>
+        `).join('');
+
+        const suma = carrito.reduce((acc, p) => acc + p.precio, 0);
+        totalTxt.innerText = suma.toLocaleString('es-AR');
+    }
+
+    function pedirPorInstagram() {
+        if (carrito.length === 0) return alert("¡Añadí algo al pedido primero!");
+
+        const usuarioInstagram = "FiguArte22Oficial"; // REEMPLAZA ESTO
+        
+        let resumen = "Hola! Quiero pedir:\n";
+        carrito.forEach(p => resumen += `- ${p.nombre}\n`);
+        resumen += "Total: $" + document.getElementById('monto-total').innerText;
+
+        alert("¡Copiá o recordá tu pedido!\n\n" + resumen);
+        window.open(`https://www.instagram.com/${usuarioInstagram}/`, '_blank');
+    }
+
+    mostrarProductos();
+</script>
+
+</body>
+</html>
